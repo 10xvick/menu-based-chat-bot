@@ -19,16 +19,17 @@ h1 {
   color: white;
 }
 
-.chat-window{
+.chat-window {
   position: absolute;
   bottom: 0px;
+  right: 10px;
   box-shadow: 0 0 5px 0 black;
   border-top-left-radius: 0.5rem;
   border-top-right-radius: 0.5rem;
   background: #000000;
   text-align: center;
 }
-.chat-window>div{
+.chat-window > div {
   padding: 0.3rem;
   cursor: pointer;
 }
@@ -54,9 +55,11 @@ h1 {
 .chat-message > .message {
   border-radius: 1.5rem;
   background: rgb(0, 132, 255);
-  padding: 0.5rem;
+  padding: 0.6rem;
   padding-left: 1rem;
   padding-right: 1rem;
+  font-size: small;
+  text-align: left;
 }
 
 .chat-left > .message {
@@ -104,9 +107,8 @@ h1 {
   visibility: hidden;
 }
 
-.json-editor{
+.json-editor {
   background-color: #00a2ff;
   height: 70vh;
   overflow: scroll;
 }
-
