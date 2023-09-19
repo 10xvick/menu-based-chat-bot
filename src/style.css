@@ -19,17 +19,26 @@ h1 {
   color: white;
 }
 
+.chat-window{
+  position: absolute;
+  bottom: 0px;
+  box-shadow: 0 0 5px 0 black;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  background: #000000;
+  text-align: center;
+}
+.chat-window>div{
+  padding: 0.3rem;
+  cursor: pointer;
+}
+
 .chat-container {
   background-color: #f1f1f1;
   height: 300px;
   width: 300px;
-  position: absolute;
-  bottom: 0px;
   padding: 0.5rem;
   border: 4px solid rgb(225, 229, 233);
-  box-shadow: 0 0 5px 0 black;
-  border-top-left-radius: 0.5rem;
-  border-top-right-radius: 0.5rem;
   display: flex;
   flex-direction: column;
   overflow: scroll;
@@ -94,3 +103,10 @@ h1 {
 .chat-right + .chat-right > .UserIcon {
   visibility: hidden;
 }
+
+.json-editor{
+  background-color: #00a2ff;
+  height: 70vh;
+  overflow: scroll;
+}
+

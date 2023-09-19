@@ -1,27 +1,42 @@
 import { useEffect, useRef, useState } from 'react';
-import { profilepicture_bot, profilepicture_user } from '../../data/data';
+import { data, profilepicture_bot, profilepicture_user } from '../../data/data';
 
-export default function Chat({ data }) {
+export default function Chat(){
+  return <ChatWindow>
+    <ChatComponent data={data}/>
+  </ChatWindow>
+}
+
+function ChatWindow(props){
+  const [show,setshow] = useState(true);
+  return  <div className='chat-window'>
+      <div onClick={()=>setshow(!show)} className='chat-header'>cat-bot</div>
+      {show && props.children}
+    </div>
+}
+
+
+function ChatComponent({ data }) {
   const [question, options, select, history, Bottom] = useChat(data);
 
   return (
-    <div className="chat-container">
-      {history.map(({ message, answer }) => (
-        <ChatMessage message={message} isanswer={answer} />
-      ))}
+      <div className="chat-container">
+        {history.map(({ message, answer }) => (
+          <ChatMessage message={message} isanswer={answer} />
+        ))}
 
-      <ChatMessage message={question} isanswer={false} />
+        <ChatMessage message={question} isanswer={false} />
 
-      {options.map((e) => (
-        <div
-          className="chat-message chat-right chat-options"
-          onClick={() => select(e)}
-        >
-          <ChatMessageChild message={e} isanswer={true} />
-        </div>
-      ))}
-      <Bottom />
-    </div>
+        {options.map((e) => (
+          <div
+            className="chat-message chat-right chat-options"
+            onClick={() => select(e)}
+          >
+            <ChatMessageChild message={e} isanswer={true} />
+          </div>
+        ))}
+        <Bottom />
+      </div>
   );
 }
 
@@ -29,7 +44,7 @@ function useChat(data) {
   const [query, setquery] = useState(data.o);
   const [question, setquestion] = useState(data.q);
   const [history, sethistory] = useState([]);
-  const ref = useRef();
+  const ref = useRef<any>();
   const Bottom = () => <div ref={ref}></div>;
   const options = Object.keys(query);
 
@@ -74,3 +89,4 @@ function ChatMessage({ message, isanswer }) {
     </div>
   );
 }
+
