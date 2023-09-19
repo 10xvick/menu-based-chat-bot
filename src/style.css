@@ -15,7 +15,7 @@ h1 {
   font-size: 1.5rem;
 }
 
-* {
+.chat-window>* {
   color: white;
 }
 
@@ -60,6 +60,7 @@ h1 {
   padding-right: 1rem;
   font-size: small;
   text-align: left;
+  box-shadow: 0 0 3px 0px #00000012;
 }
 
 .chat-left > .message {
@@ -108,7 +109,7 @@ h1 {
 }
 
 .json-editor {
-  background-color: #00a2ff;
   height: 70vh;
   overflow: scroll;
 }
+
