@@ -1,0 +1,96 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 1rem;
+  font-family: system-ui, sans-serif;
+  color: black;
+  background-color: white;
+}
+
+h1 {
+  font-weight: 800;
+  font-size: 1.5rem;
+}
+
+* {
+  color: white;
+}
+
+.chat-container {
+  background-color: #f1f1f1;
+  height: 300px;
+  width: 300px;
+  position: absolute;
+  bottom: 0px;
+  padding: 0.5rem;
+  border: 4px solid rgb(225, 229, 233);
+  box-shadow: 0 0 5px 0 black;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  overflow: scroll;
+  scroll-behavior: smooth;
+}
+.chat-message {
+  padding: 0.25rem;
+  width: fit-content;
+  user-select: none;
+  display: flex;
+}
+
+.chat-message > .message {
+  border-radius: 1.5rem;
+  background: rgb(0, 132, 255);
+  padding: 0.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.chat-left > .message {
+  border-top-left-radius: 0;
+}
+
+.chat-right {
+  align-self: end;
+  flex-direction: row-reverse;
+}
+
+.chat-right > .message {
+  border-top-right-radius: 0;
+}
+
+.chat-options > .message {
+  background-color: #17c700;
+  cursor: pointer;
+  filter: brightness(1);
+}
+.chat-options > .message:hover {
+  filter: contrast(1.5);
+}
+
+.UserIcon {
+  background-color: rgb(1, 153, 1);
+  background-size: cover;
+  background-position: center;
+  width: 2.4rem;
+  min-width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50% !important;
+  text-align: center;
+  box-shadow: inset 0 0 4px 3px rgba(0, 0, 0, 0.452);
+}
+
+.chat-right > .UserIcon {
+  margin-left: 0.25rem;
+}
+.chat-left > .UserIcon {
+  margin-right: 0.25rem;
+}
+
+.chat-right + .chat-right > .UserIcon {
+  visibility: hidden;
+}
