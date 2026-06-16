@@ -42,7 +42,7 @@ jobs:
         with:
           repository: 10xvick/10xvick.github.io
           path: main-site
-          token: ${{ secrets.DEPLOY_TOKEN }}
+          token: ${{ secrets.DEPLOY_BOT_BUILDER }}
 
       - name: Create deployment directory
         run: mkdir -p main-site/tools/chat/menu-based-chat-bot
