@@ -718,3 +718,130 @@ body {
 .chat-send-btn:hover {
   background: var(--accent-hover);
 }
+
+/* Typing Indicator Animation */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.6rem 0.8rem;
+  min-height: 1.85rem;
+}
+
+.typing-indicator span {
+  width: 6px;
+  height: 6px;
+  background-color: var(--chat-bot-text);
+  border-radius: 50%;
+  opacity: 0.4;
+  animation: typing-bounce 1.4s infinite both;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing-bounce {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Progressive Blur-Up Image Loading */
+.blur-up-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+  margin-top: 8px;
+  background: linear-gradient(110deg, var(--chat-bot-bg) 8%, var(--border-color) 18%, var(--chat-bot-bg) 33%);
+  background-size: 200% 100%;
+  animation: skeleton-shine 1.5s linear infinite;
+  min-height: 150px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.blur-up-container.loaded {
+  background: none;
+  animation: none;
+  min-height: 0;
+}
+
+@keyframes skeleton-shine {
+  to {
+    background-position-x: -200%;
+  }
+}
+
+.blur-up {
+  width: 100%;
+  max-width: 100%;
+  max-height: 200px;
+  display: block;
+  border-radius: 6px;
+  box-shadow: var(--shadow-sm);
+  transition: filter 0.6s cubic-bezier(0.3, 0, 0.2, 1), transform 0.6s cubic-bezier(0.3, 0, 0.2, 1), opacity 0.6s cubic-bezier(0.3, 0, 0.2, 1);
+  filter: blur(10px) brightness(0.95);
+  transform: scale(1.02);
+  opacity: 0.8;
+}
+
+.blur-up.loaded {
+  filter: blur(0) brightness(1);
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Chat Message Links */
+.chat-link {
+  color: var(--accent-color);
+  text-decoration: underline;
+  word-break: break-all;
+  font-weight: 500;
+  transition: opacity 0.2s ease;
+}
+
+.chat-right .chat-link {
+  color: #ffffff;
+}
+
+.chat-link:hover {
+  opacity: 0.85;
+}
+
+/* Chat Status Toggle Button */
+.chat-status-toggle {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: inline-block;
+  align-self: center;
+  margin-left: 6px;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.chat-status-toggle.open {
+  background-color: #10b981; /* Green */
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
+}
+
+.chat-status-toggle.closed {
+  background-color: #ef4444; /* Red */
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+}
+
+.chat-status-toggle:hover {
+  transform: scale(1.2);
+}

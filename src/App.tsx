@@ -13,7 +13,7 @@ export const App = () => {
   const [activeCode, setActiveCode] = useState(() => {
     const saved = localStorage.getItem('chatbot_code');
     // Migration: If the user has old nested code from a previous version, ignore it and use default.
-    if (saved && saved.includes('startNode:')) {
+    if (saved && saved.includes('startNode:') && saved.includes('ui_controls') && saved.includes('fun_menu')) {
       return saved;
     }
     return defaultDataCode;

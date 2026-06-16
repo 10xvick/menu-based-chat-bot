@@ -18,14 +18,14 @@ export default function Chat({ data, onFormUpdate, onNodeChange, onPathChange, i
   const posStart = useRef({ x: 0, y: 0 });
 
   // Expose a ref to trigger reset from the header
-  const resetChatRef = useRef<() => void>(() => {});
+  const resetChatRef = useRef<() => void>(() => { });
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (isDocked) return; // Disable dragging if docked
     isDragging.current = true;
     dragStart.current = { x: e.clientX, y: e.clientY };
     posStart.current = { ...position };
-    
+
     const handlePointerMove = (ev: PointerEvent) => {
       if (!isDragging.current) return;
       const dx = ev.clientX - dragStart.current.x;
@@ -44,14 +44,14 @@ export default function Chat({ data, onFormUpdate, onNodeChange, onPathChange, i
 
     document.addEventListener('pointermove', handlePointerMove);
     document.addEventListener('pointerup', handlePointerUp);
-    
+
     // @ts-ignore
     e.target.setPointerCapture(e.pointerId);
   };
 
   return (
-    <div 
-      className={`chat-window ${isDocked ? 'chat-docked' : ''}`} 
+    <div
+      className={`chat-window ${isDocked ? 'chat-docked' : ''}`}
       style={isDocked ? {} : { transform: `translate(${position.x}px, ${position.y}px)` }}
     >
       <div onPointerDown={handlePointerDown} className="chat-header">
@@ -61,30 +61,29 @@ export default function Chat({ data, onFormUpdate, onNodeChange, onPathChange, i
         </div>
         <div className="chat-header-actions">
           {onToggleDock && (
-            <button 
-              className="chat-toggle-btn" 
+            <button
+              className="chat-toggle-btn"
               title={isDocked ? "Undock Chat" : "Dock Chat"}
-              onPointerDown={(e) => e.stopPropagation()} 
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onToggleDock(); }}
             >
               {isDocked ? '⇱' : '⇲'}
             </button>
           )}
-          <button 
-            className="chat-toggle-btn" 
-            onPointerDown={(e) => e.stopPropagation()} 
+          <button
+            className={`chat-toggle-btn chat-status-toggle ${show ? 'open' : 'closed'}`}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); setShow(!show); }}
-          >
-            {show ? '▼' : '▲'}
-          </button>
+            title={show ? "Collapse Assistant" : "Expand Assistant"}
+          />
         </div>
       </div>
       {show && (
-        <ChatComponent 
-          data={data} 
-          closeChat={() => setShow(false)} 
-          onFormUpdate={onFormUpdate} 
-          onNodeChange={onNodeChange} 
+        <ChatComponent
+          data={data}
+          closeChat={() => setShow(false)}
+          onFormUpdate={onFormUpdate}
+          onNodeChange={onNodeChange}
           onPathChange={onPathChange}
           resetChatRef={resetChatRef}
         />
@@ -101,9 +100,10 @@ function ChatComponent({ data, closeChat, onFormUpdate, onNodeChange, onPathChan
     selectOption,
     submitInput,
     goBack,
-    Bottom,
     triggerReset,
-    isRestartPrompt
+    isRestartPrompt,
+    isTyping,
+    displayQuestion
   } = useChat(data, closeChat, onFormUpdate, onNodeChange, onPathChange);
 
   useEffect(() => {
@@ -112,6 +112,21 @@ function ChatComponent({ data, closeChat, onFormUpdate, onNodeChange, onPathChan
 
   const [inputValue, setInputValue] = useState('');
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  };
+
+  // Auto-scroll on content updates
+  useEffect(() => {
+    scrollToBottom();
+    const timer = setTimeout(scrollToBottom, 50);
+    return () => clearTimeout(timer);
+  }, [currentNode, history, isRestartPrompt, isTyping]);
+
   const handleInputSubmit = () => {
     if (inputValue.trim() === '') return;
     submitInput(inputValue);
@@ -119,21 +134,24 @@ function ChatComponent({ data, closeChat, onFormUpdate, onNodeChange, onPathChan
   };
 
   return (
-    <div className="chat-container">
+    <div ref={containerRef} className="chat-container">
       {history.map(({ message, answer }, index) => (
-        <ChatMessage key={index} message={message} isanswer={answer} />
+        <ChatMessage key={index} message={message} isanswer={answer} onLoadCallback={scrollToBottom} />
       ))}
 
-      {currentNode?.q && (
-        <ChatMessage 
-          message={isRestartPrompt ? "Need another help?" : currentNode.q} 
-          isanswer={false} 
+      {isTyping && <TypingIndicator />}
+
+      {!isTyping && currentNode?.q && (
+        <ChatMessage
+          message={isRestartPrompt ? "Need another help?" : displayQuestion}
+          isanswer={false}
+          onLoadCallback={scrollToBottom}
         />
       )}
 
       {/* Options if it's a choice node or restart prompt */}
-      {(isRestartPrompt 
-        ? (data?.nodes?.[data.startNode]?.options || []) 
+      {!isTyping && (isRestartPrompt
+        ? (data?.nodes?.[data.startNode]?.options || [])
         : (currentNode?.options || [])
       )
         .concat(isRestartPrompt ? [{ label: "Bye", next: "__CLOSE__" }] : [])
@@ -148,7 +166,7 @@ function ChatComponent({ data, closeChat, onFormUpdate, onNodeChange, onPathChan
         ))}
 
       {/* Text Input if it's an input node and not restart prompt */}
-      {!isRestartPrompt && currentNode?.type === 'input' && (
+      {!isTyping && !isRestartPrompt && currentNode?.type === 'input' && (
         <div className="chat-input-container">
           <input
             type="text"
@@ -163,7 +181,7 @@ function ChatComponent({ data, closeChat, onFormUpdate, onNodeChange, onPathChan
         </div>
       )}
 
-      {!isRestartPrompt && goBack && (
+      {!isTyping && !isRestartPrompt && goBack && (
         <div
           className="chat-message chat-right chat-options"
           onClick={goBack}
@@ -171,8 +189,6 @@ function ChatComponent({ data, closeChat, onFormUpdate, onNodeChange, onPathChan
           <ChatMessageChild message="⬅️ Go Back" isanswer={true} />
         </div>
       )}
-
-      <Bottom />
     </div>
   );
 }
@@ -183,60 +199,112 @@ function useChat(data: any, closeChat: () => void, onFormUpdate?: (f: string, v:
   const [history, sethistory] = useState<any[]>([]);
   const [pathStack, setPathStack] = useState<string[]>([]);
   const [isRestartPrompt, setIsRestartPrompt] = useState(false);
-  const ref = useRef<any>(null);
-
-  const Bottom = () => <div ref={ref} style={{ height: 1, flexShrink: 0 }}></div>;
+  const [isTyping, setIsTyping] = useState(false);
+  const [nodeQuestions, setNodeQuestions] = useState<Record<string, string>>({});
+  const typingTimeoutRef = useRef<any>(null);
 
   useEffect(() => {
-    // Reset to start node
+    return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+  }, []);
+
+  // Initial load or data changes
+  useEffect(() => {
     if (data?.startNode && data?.nodes) {
-      setCurrentNodeId(data.startNode);
-      setCurrentNode(data.nodes[data.startNode]);
-      sethistory([]);
-      setPathStack([data.startNode]);
+      const startId = data.startNode;
+      const startNode = data.nodes[startId];
+
+      setIsTyping(true);
       setIsRestartPrompt(false);
-      if (onNodeChange) onNodeChange(data.startNode);
-      if (onPathChange) onPathChange([data.startNode]);
+      sethistory([]);
+      setPathStack([startId]);
+      setNodeQuestions({});
+
+      const delay = Math.max(600, Math.min(1200, (startNode.q || '').length * 12));
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => {
+        setIsTyping(false);
+        setCurrentNodeId(startId);
+        setCurrentNode(startNode);
+        if (onNodeChange) onNodeChange(startId);
+        if (onPathChange) onPathChange([startId]);
+      }, delay);
     } else {
-      // Fallback if the data is malformed
       setCurrentNodeId(null);
       setCurrentNode({ q: "Error: Invalid script data structure." });
     }
   }, [data]);
 
-  useEffect(() => {
-    if (ref.current && ref.current.parentElement) {
-      ref.current.parentElement.scrollTo({
-        top: ref.current.parentElement.scrollHeight,
-        behavior: 'smooth'
-      });
-    }
-  }, [currentNode, history, isRestartPrompt]);
+  const executeAction = (node: any, nodeId: string) => {
+    return new Promise<void>((resolve) => {
+      let resolved = false;
+      const safeResolve = () => {
+        if (!resolved) {
+          resolved = true;
+          resolve();
+        }
+      };
 
-  const executeAction = (node: any) => {
-    if (typeof node?.action === 'function') {
-      try { node.action(); } catch (e) { console.error("Action execution error:", e); }
-    } else if (typeof node?.action === 'string') {
-      try {
-        // eslint-disable-next-line no-new-func
-        const fn = new Function(node.action);
-        fn();
-      } catch (e) { console.error("Action string execution error:", e); }
-    }
+      const updateQuestion = (newQ: string) => {
+        setNodeQuestions(prev => ({ ...prev, [nodeId]: newQ }));
+        safeResolve();
+      };
+
+      let result: any = null;
+      if (typeof node?.action === 'function') {
+        try {
+          result = node.action(updateQuestion);
+        } catch (e) {
+          console.error("Action execution error:", e);
+          safeResolve();
+        }
+      } else if (typeof node?.action === 'string') {
+        try {
+          // eslint-disable-next-line no-new-func
+          const fn = new Function('updateQuestion', node.action);
+          result = fn(updateQuestion);
+        } catch (e) {
+          console.error("Action string execution error:", e);
+          safeResolve();
+        }
+      } else {
+        safeResolve();
+      }
+
+      if (result && typeof result.then === 'function') {
+        result.then(safeResolve).catch(safeResolve);
+      } else {
+        const actionFn = typeof node?.action === 'function' ? node.action : null;
+        const isSync = !actionFn || actionFn.length === 0;
+        if (isSync) {
+          safeResolve();
+        }
+      }
+    });
   };
 
   const triggerReset = () => {
     const startId = data.startNode;
-    setCurrentNodeId(startId);
-    setCurrentNode(data.nodes[startId]);
+    const startNode = data.nodes[startId];
+    setIsTyping(true);
+    setIsRestartPrompt(false);
     sethistory([]);
     setPathStack([startId]);
-    setIsRestartPrompt(false);
-    if (onNodeChange) onNodeChange(startId);
-    if (onPathChange) onPathChange([startId]);
+    setNodeQuestions({});
+
+    const delay = Math.max(600, Math.min(1200, (startNode.q || '').length * 12));
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      setCurrentNodeId(startId);
+      setCurrentNode(startNode);
+      if (onNodeChange) onNodeChange(startId);
+      if (onPathChange) onPathChange([startId]);
+    }, delay);
   };
 
-  const handleNext = (nextNodeId: string, userMessage: string) => {
+  const handleTransition = (nextNodeId: string, userMessage: string, currentHistory: any[], currentPathStack: string[]) => {
     if (nextNodeId === "__RESET__") {
       triggerReset();
       return;
@@ -248,54 +316,134 @@ function useChat(data: any, closeChat: () => void, onFormUpdate?: (f: string, v:
 
     const nextNode = data.nodes[nextNodeId];
     if (nextNode) {
-      executeAction(nextNode);
-      
-      const isDeadEnd = (!nextNode.options || nextNode.options.length === 0) && !nextNode.next && nextNode.type !== 'input';
-      const prevBotQ = isRestartPrompt ? "Need another help?" : currentNode.q;
-      
-      if (isDeadEnd) {
-        // Build the history with user's answer, then separately append the dead-end message
-        const updatedHistory = [
-          ...history,
-          { message: prevBotQ, answer: false },
-          { message: userMessage, answer: true },
-          { message: nextNode.q, answer: false }
-        ];
-        
-        // Transition immediately to startNode on the tree, prompting a restart
-        const startId = data.startNode;
-        setCurrentNodeId(startId);
-        setCurrentNode(data.nodes[startId]);
-        setPathStack([startId]);
-        sethistory(updatedHistory);
-        setIsRestartPrompt(true);
-        if (onNodeChange) onNodeChange(startId);
-        if (onPathChange) onPathChange([startId]);
-      } else {
-        // Standard transition
-        setCurrentNodeId(nextNodeId);
-        setCurrentNode(nextNode);
-        
-        const newPath = [...pathStack, nextNodeId];
-        setPathStack(newPath);
-        if (onPathChange) onPathChange(newPath);
-        
-        sethistory([
-          ...history,
-          { message: prevBotQ, answer: false },
-          { message: userMessage, answer: true },
-        ]);
-        setIsRestartPrompt(false);
-        if (onNodeChange) onNodeChange(nextNodeId);
+      // Clear dynamic question override before entering the node to avoid flash of old content
+      setNodeQuestions(prev => {
+        const next = { ...prev };
+        delete next[nextNodeId];
+        return next;
+      });
+
+      const displayQ = currentNodeId ? (nodeQuestions[currentNodeId] || currentNode?.q || '') : '';
+      const prevBotQ = isRestartPrompt ? "Need another help?" : displayQ;
+
+      let newHistory = [...currentHistory];
+      if (userMessage) {
+        newHistory.push({ message: prevBotQ, answer: false });
+        newHistory.push({ message: userMessage, answer: true });
       }
+      sethistory(newHistory);
+
+      setIsTyping(true);
+      setIsRestartPrompt(false);
+      setCurrentNode(null);
+      setCurrentNodeId(null);
+
+      const delay = Math.max(700, Math.min(1500, (nextNode.q || '').length * 12));
+
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => {
+        const finalize = (hist: any[], path: string[]) => {
+          setIsTyping(false);
+          const isDeadEnd = (!nextNode.options || nextNode.options.length === 0) && !nextNode.next && nextNode.type !== 'input';
+
+          if (isDeadEnd) {
+            const startId = data.startNode;
+            setCurrentNodeId(startId);
+            setCurrentNode(data.nodes[startId]);
+            setPathStack([startId]);
+            const finalNodeQ = nodeQuestions[nextNodeId] || nextNode.q;
+            sethistory([
+              ...hist,
+              { message: finalNodeQ, answer: false }
+            ]);
+            setIsRestartPrompt(true);
+            if (onNodeChange) onNodeChange(startId);
+            if (onPathChange) onPathChange([startId]);
+          } else {
+            setCurrentNodeId(nextNodeId);
+            setCurrentNode(nextNode);
+
+            setPathStack(path);
+            if (onPathChange) onPathChange(path);
+            if (onNodeChange) onNodeChange(nextNodeId);
+          }
+        };
+
+        const newPathStack = [...currentPathStack, nextNodeId];
+
+        if (nextNode.action) {
+          setIsTyping(true);
+
+          executeAction(nextNode, nextNodeId).then(() => {
+            const isAutoTransition = nextNode.next && (!nextNode.options || nextNode.options.length === 0) && nextNode.type !== 'input';
+            if (isAutoTransition) {
+              setPathStack(newPathStack);
+              if (onPathChange) onPathChange(newPathStack);
+              if (onNodeChange) onNodeChange(nextNodeId);
+
+              handleTransition(nextNode.next, '', newHistory, newPathStack);
+            } else {
+              finalize(newHistory, newPathStack);
+            }
+          });
+        } else {
+          finalize(newHistory, newPathStack);
+        }
+      }, delay);
     }
   };
+
+  const handleNext = (nextNodeId: string, userMessage: string) => {
+    handleTransition(nextNodeId, userMessage, history, pathStack);
+  };
+
+  // Auto-transition runner for processing / evaluation steps
+  useEffect(() => {
+    if (currentNode && currentNode.next && (!currentNode.options || currentNode.options.length === 0) && currentNode.type !== 'input' && !isTyping && !isRestartPrompt) {
+      const autoDelay = 1500;
+      const timer = setTimeout(() => {
+        handleNext(currentNode.next, '');
+      }, autoDelay);
+      return () => clearTimeout(timer);
+    }
+  }, [currentNode, isTyping, isRestartPrompt]);
 
   const selectOption = (opt: { label: string; next: string }) => {
     handleNext(opt.next, opt.label);
   };
 
   const submitInput = (value: string) => {
+    if (!currentNode) return;
+
+    const validationError = validateInput(currentNode.field, value);
+    if (validationError) {
+      const currentDisplayQ = currentNodeId ? (nodeQuestions[currentNodeId] || currentNode?.q || '') : '';
+      const prevBotQ = isRestartPrompt ? "Need another help?" : currentDisplayQ;
+
+      let newHistory = [...history];
+      newHistory.push({ message: prevBotQ, answer: false });
+      newHistory.push({ message: value, answer: true });
+      sethistory(newHistory);
+
+      setIsTyping(true);
+      setCurrentNode(null);
+      setCurrentNodeId(null);
+
+      const delay = Math.max(600, Math.min(1200, validationError.length * 12));
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => {
+        setIsTyping(false);
+        sethistory([
+          ...newHistory,
+          { message: validationError, answer: false }
+        ]);
+        setCurrentNode(currentNode);
+        setCurrentNodeId(currentNodeId);
+      }, delay);
+
+      return;
+    }
+
     if (currentNode.field && onFormUpdate) {
       onFormUpdate(currentNode.field, value);
     }
@@ -306,20 +454,37 @@ function useChat(data: any, closeChat: () => void, onFormUpdate?: (f: string, v:
 
   const goBack = pathStack.length > 1 ? () => {
     const newStack = [...pathStack];
-    newStack.pop();
-    const previousNodeId = newStack[newStack.length - 1];
-    
-    setCurrentNodeId(previousNodeId);
-    setCurrentNode(data.nodes[previousNodeId]);
-    setPathStack(newStack);
-    setIsRestartPrompt(false);
-    if (onNodeChange) onNodeChange(previousNodeId);
-    if (onPathChange) onPathChange(newStack);
+    const currentId = newStack[newStack.length - 1];
 
-    const newHistory = [...history];
-    newHistory.splice(-2);
-    sethistory(newHistory);
+    // Find the first node in the stack that is DIFFERENT from currentId
+    // to bypass self-transitions (like re-triggering cat_pic or dad_joke).
+    let previousNodeId = currentId;
+    let popCount = 0;
+    for (let i = newStack.length - 2; i >= 0; i--) {
+      if (newStack[i] !== currentId) {
+        previousNodeId = newStack[i];
+        popCount = newStack.length - 1 - i;
+        break;
+      }
+    }
+
+    if (popCount > 0) {
+      newStack.splice(-popCount);
+      setCurrentNodeId(previousNodeId);
+      setCurrentNode(data.nodes[previousNodeId]);
+      setPathStack(newStack);
+      setIsRestartPrompt(false);
+      if (onNodeChange) onNodeChange(previousNodeId);
+      if (onPathChange) onPathChange(newStack);
+
+      // Clean the corresponding history steps
+      const newHistory = [...history];
+      newHistory.splice(-2 * popCount);
+      sethistory(newHistory);
+    }
   } : null;
+
+  const displayQuestion = currentNodeId ? (nodeQuestions[currentNodeId] || currentNode?.q) : '';
 
   return {
     currentNodeId,
@@ -328,9 +493,10 @@ function useChat(data: any, closeChat: () => void, onFormUpdate?: (f: string, v:
     selectOption,
     submitInput,
     goBack,
-    Bottom,
     triggerReset,
-    isRestartPrompt
+    isRestartPrompt,
+    isTyping,
+    displayQuestion
   };
 }
 
@@ -338,20 +504,147 @@ const Icon = ({ image }: { image: string }) => (
   <div className="UserIcon" style={{ backgroundImage: `url(${image})` }}></div>
 );
 
-function ChatMessageChild({ message, isanswer }: { message: string, isanswer: boolean }) {
+function BlurUpImage({ src, onLoad }: { src: string, onLoad?: () => void }) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  return (
+    <div className={`blur-up-container ${isLoaded ? 'loaded' : ''}`}>
+      <img
+        src={src}
+        alt="Shared Media"
+        loading="lazy"
+        decoding="async"
+        onLoad={() => {
+          setIsLoaded(true);
+          if (onLoad) onLoad();
+        }}
+        className={`blur-up ${isLoaded ? 'loaded' : ''}`}
+      />
+    </div>
+  );
+}
+
+function renderMessageContent(message: string, onLoadCallback?: () => void) {
+  if (!message) return null;
+
+  // Regex to match any http/https URL
+  const urlRegex = /(https?:\/\/\S+)/gi;
+  const parts = message.split(urlRegex);
+
+  // If there are no URLs, just return the message
+  if (parts.length === 1) {
+    return message;
+  }
+
+  // Helper to check if a URL is an image
+  const isImageUrl = (url: string) => {
+    return /\.(?:png|jpg|jpeg|gif|webp)(?:\?\S+)?$/i.test(url);
+  };
+
   return (
     <>
-      <Icon image={isanswer ? profilepicture_user : profilepicture_bot} />
-      <div className="message" style={{ whiteSpace: 'pre-wrap' }}>{message}</div>
+      {parts.map((part, index) => {
+        if (part.match(urlRegex)) {
+          const url = part;
+          if (isImageUrl(url)) {
+            return <BlurUpImage key={index} src={url} onLoad={onLoadCallback} />;
+          } else {
+            return (
+              <a
+                key={index}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="chat-link"
+              >
+                {url}
+              </a>
+            );
+          }
+        }
+        return <span key={index}>{part}</span>;
+      })}
     </>
   );
 }
 
-function ChatMessage({ message, isanswer }: { message: string, isanswer: boolean }) {
-  if (!message) return null;
+function TypingIndicator() {
   return (
-    <div className={`chat-message chat-${isanswer ? 'right' : 'left'}`}>
-      <ChatMessageChild message={message} isanswer={isanswer} />
+    <div className="chat-message chat-left">
+      <Icon image={profilepicture_bot} />
+      <div className="message typing-indicator">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </div>
   );
 }
+
+function ChatMessageChild({ message, isanswer, onLoadCallback }: { message: string, isanswer: boolean, onLoadCallback?: () => void }) {
+  return (
+    <>
+      <Icon image={isanswer ? profilepicture_user : profilepicture_bot} />
+      <div className="message" style={{ whiteSpace: 'pre-wrap' }}>
+        {renderMessageContent(message, onLoadCallback)}
+      </div>
+    </>
+  );
+}
+
+function ChatMessage({ message, isanswer, onLoadCallback }: { message: string, isanswer: boolean, onLoadCallback?: () => void }) {
+  if (!message) return null;
+  return (
+    <div className={`chat-message chat-${isanswer ? 'right' : 'left'}`}>
+      <ChatMessageChild message={message} isanswer={isanswer} onLoadCallback={onLoadCallback} />
+    </div>
+  );
+}
+
+const validateInput = (field: string, value: string): string | null => {
+  if (!field) return null;
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return "Please enter a value before submitting.";
+  }
+
+  const f = field.toLowerCase();
+  
+  if (f === 'email') {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmed)) {
+      return "That doesn't look like a valid email address. Please make sure it follows the standard format (e.g., name@example.com).";
+    }
+  }
+
+  if (f === 'card_last_digits') {
+    const digitRegex = /^\d{4}$/;
+    if (!digitRegex.test(trimmed)) {
+      return "Please enter exactly the last 4 digits of your card number (e.g., 1234).";
+    }
+  }
+
+  if (f === 'ordernumber') {
+    const digitRegex = /^\d{6}$/;
+    if (!digitRegex.test(trimmed)) {
+      return "Please enter exactly a 6-digit order number (e.g., 123456).";
+    }
+  }
+
+  if (f === 'monthly_income') {
+    // strip non-numeric except decimal point
+    const cleanNum = trimmed.replace(/[^0-9.]/g, '');
+    const income = Number(cleanNum);
+    if (!cleanNum || isNaN(income) || income <= 0) {
+      return "Please enter a valid monthly income as a positive number (e.g., 4500).";
+    }
+  }
+
+  if (f === 'name') {
+    if (trimmed.length < 2) {
+      return "Please enter your name (at least 2 characters).";
+    }
+  }
+
+  return null;
+};
