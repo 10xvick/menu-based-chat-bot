@@ -60,14 +60,16 @@ export default function Chat({ data, onFormUpdate, onNodeChange, onPathChange, i
           Assistant
         </div>
         <div className="chat-header-actions">
-          <button 
-            className="chat-toggle-btn" 
-            title="Reset Chat"
-            onPointerDown={(e) => e.stopPropagation()} 
-            onClick={(e) => { e.stopPropagation(); resetChatRef.current(); }}
-          >
-            ↺
-          </button>
+          {onToggleDock && (
+            <button 
+              className="chat-toggle-btn" 
+              title={isDocked ? "Undock Chat" : "Dock Chat"}
+              onPointerDown={(e) => e.stopPropagation()} 
+              onClick={(e) => { e.stopPropagation(); onToggleDock(); }}
+            >
+              {isDocked ? '⇱' : '⇲'}
+            </button>
+          )}
           <button 
             className="chat-toggle-btn" 
             onPointerDown={(e) => e.stopPropagation()} 
