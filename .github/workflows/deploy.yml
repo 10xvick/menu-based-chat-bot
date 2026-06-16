@@ -19,7 +19,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout menu-based-chat-bot repo
+      - name: Checkout bottree repo
         uses: actions/checkout@v6
 
       - name: Setup Node.js
@@ -45,10 +45,12 @@ jobs:
           token: ${{ secrets.DEPLOY_BOT_BUILDER }}
 
       - name: Create deployment directory
-        run: mkdir -p main-site/tools/chat/menu-based-chat-bot
+        run: |
+          rm -rf main-site/tools/chat/menu-based-chat-bot
+          mkdir -p main-site/tools/chat/bottree
 
       - name: Copy built files
-        run: cp -r build/* main-site/tools/chat/menu-based-chat-bot/
+        run: cp -r build/* main-site/tools/chat/bottree/
 
       - name: Configure git
         working-directory: main-site
@@ -59,10 +61,11 @@ jobs:
       - name: Commit and push changes
         working-directory: main-site
         run: |
-          git add tools/chat/menu-based-chat-bot/
+          git add tools/chat/bottree/
+          git add tools/chat/menu-based-chat-bot/ || true
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Deploy menu-based-chat-bot build"
+            git commit -m "Deploy bottree build and remove old path"
             git push
           fi
