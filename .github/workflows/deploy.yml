@@ -1,0 +1,67 @@
+name: Build and Deploy to GitHub Pages
+
+on:
+  push:
+    branches: ['main']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout menu-based-chat-bot repo
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Upgrade npm
+        run: npm install -g npm@11
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Checkout main site repo
+        uses: actions/checkout@v6
+        with:
+          repository: 10xvick/10xvick.github.io
+          path: main-site
+          token: ${{ secrets.DEPLOY_TOKEN }}
+
+      - name: Create deployment directory
+        run: mkdir -p main-site/tools/chat/menu-based-chat-bot
+
+      - name: Copy built files
+        run: cp -r build/* main-site/tools/chat/menu-based-chat-bot/
+
+      - name: Configure git
+        working-directory: main-site
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and push changes
+        working-directory: main-site
+        run: |
+          git add tools/chat/menu-based-chat-bot/
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Deploy menu-based-chat-bot build"
+            git push
+          fi

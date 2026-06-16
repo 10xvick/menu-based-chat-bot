@@ -2,6 +2,7 @@
   "name": "stackblitz-starters-qrn3a3",
   "version": "0.0.0",
   "private": true,
+  "homepage": ".",
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
     "@react-three/drei": "^9.122.0",
