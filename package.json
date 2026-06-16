@@ -3,10 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
+    "@types/react": "18.2.21",
+    "@types/react-dom": "18.2.7",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "@types/react": "18.2.21",
-    "@types/react-dom": "18.2.7"
+    "three": "^0.184.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -15,6 +19,19 @@
     "eject": "react-scripts eject"
   },
   "devDependencies": {
+    "@types/three": "^0.155.0",
     "react-scripts": "latest"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
