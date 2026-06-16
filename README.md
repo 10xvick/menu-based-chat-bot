@@ -1,8 +1,8 @@
-# 🤖 BranchBot Studio (formerly react-menu-based-chatbot)
+# 🤖 BotTree (formerly react-menu-based-chatbot)
 
 > **A Next-Gen, Interactive 3D WebGL Conversation Flow Designer and Simulator.**
 
-BranchBot Studio is a visual chatbot editing and prototyping environment. It allows developers and designers to build complex, conditional conversation graphs using a live Monaco-powered JavaScript code editor, simulate them in real-time with a human-like messaging client, and visualize the entire path structure inside a **3D WebGL branching tree layout**.
+BotTree is a visual chatbot editing and prototyping environment. It allows developers and designers to build complex, conditional conversation graphs using a live Monaco-powered JavaScript code editor, simulate them in real-time with a human-like messaging client, and visualize the entire path structure inside a **3D WebGL branching tree layout**.
 
 ---
 
