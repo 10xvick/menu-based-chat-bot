@@ -1,44 +1,86 @@
-export const dataCode = `// Here we define two completely separate scripts.
-// You can build complex graphs by "plugging" multiple script modules together!
+export const dataCode = `// Apex Bank Virtual Assistant Script
+// Organized by Category with Interactive Actions & Form Capturing
 
-const bankingScript = {
-  start: {
-    q: 'Hi! What do you need help with?',
+const accountServices = {
+  accounts_menu: {
+    q: 'Account Services Menu. What would you like to do?',
     options: [
-      { label: 'Toggle Dark Mode', next: 'toggle_theme' },
-      { label: 'Transaction Issue', next: 'transaction' },
-      { label: 'Account Inquiry', next: 'account' },
-      { label: 'Book Appointment (Form Module)', next: 'appointment_start' }
+      { label: 'Check Account Balances', next: 'account' },
+      { label: 'Apply for Credit Card', next: 'card_start' },
+      { label: '⬅️ Back to Main Menu', next: 'start' }
     ]
-  },
-  toggle_theme: {
-    q: 'Theme toggled!',
-    action: () => document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light'),
-    options: []
-  },
-  transaction: {
-    q: 'An executive will reach out to you.',
-    options: []
   },
   account: {
     q: 'Which account do you need help with?',
     options: [
-      { label: 'Savings', next: 'savings' },
-      { label: 'Current', next: 'current' },
-      { label: 'Fixed Deposit', next: 'fixed_deposit' }
+      { label: 'Savings Account', next: 'savings' },
+      { label: 'Current Account', next: 'current' },
+      { label: 'Fixed Deposit Account', next: 'fixed_deposit' },
+      { label: '⬅️ Back to Accounts Menu', next: 'accounts_menu' }
     ]
   },
   savings: {
-    q: 'All executives are busy. Try later!',
-    options: [{ label: 'Check another account', next: 'account' }]
+    q: 'Your savings account balance is $12,450.50.\\nNeed any other account balance?',
+    options: [
+      { label: 'Current Account', next: 'current' },
+      { label: 'Fixed Deposit Account', next: 'fixed_deposit' },
+      { label: '⬅️ Back to Accounts Menu', next: 'accounts_menu' }
+    ]
   },
   current: {
-    q: 'Account details sent to your email.',
-    options: [] // Dead end -> will automatically append "Any other help?" and restart
+    q: 'Your current account balance is $3,820.15.\\nNeed any other account balance?',
+    options: [
+      { label: 'Savings Account', next: 'savings' },
+      { label: 'Fixed Deposit Account', next: 'fixed_deposit' },
+      { label: '⬅️ Back to Accounts Menu', next: 'accounts_menu' }
+    ]
   },
   fixed_deposit: {
-    q: 'Our executive will call you. Please wait.',
-    options: []
+    q: 'Your fixed deposit account balance is $50,000.00 (Matures Dec 2026).\\nNeed any other account balance?',
+    options: [
+      { label: 'Savings Account', next: 'savings' },
+      { label: 'Current Account', next: 'current' },
+      { label: '⬅️ Back to Accounts Menu', next: 'accounts_menu' }
+    ]
+  },
+  card_start: {
+    q: 'Sure, let\\'s check your credit card eligibility. What is your monthly income?',
+    type: 'input',
+    field: 'monthly_income',
+    next: 'card_evaluate'
+  },
+  card_evaluate: {
+    q: 'Evaluating eligibility...',
+    options: [
+      { label: 'Show Offer', next: 'card_offer' }
+    ]
+  },
+  card_offer: {
+    q: 'Congratulations! You are eligible for our Apex Platinum Card with a $15,000 limit.',
+    options: [] // Dead end -> auto-prompt restart
+  }
+};
+
+const technicalSupport = {
+  support_menu: {
+    q: 'Technical Support Menu. How can we help?',
+    options: [
+      { label: 'Toggle App Dark/Light Theme', next: 'toggle_theme' },
+      { label: 'Report Transaction Issue', next: 'transaction' },
+      { label: '⬅️ Back to Main Menu', next: 'start' }
+    ]
+  },
+  toggle_theme: {
+    q: 'App theme toggled! You can toggle it again or return to the support menu.',
+    action: () => document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light'),
+    options: [
+      { label: 'Toggle Theme Again', next: 'toggle_theme' },
+      { label: '⬅️ Back to Support Menu', next: 'support_menu' }
+    ]
+  },
+  transaction: {
+    q: 'We are sorry you had a transaction issue. An executive will reach out to you within 24 hours.',
+    options: [] // Dead end -> auto-prompt restart
   }
 };
 
@@ -58,21 +100,29 @@ const appointmentFormScript = {
   appointment_confirm: {
     q: 'Got it. I have prepared your form. Shall I submit the appointment request?',
     options: [
-      { label: 'Submit', next: 'appointment_success' },
+      { label: 'Submit Appointment', next: 'appointment_success' },
       { label: 'Cancel & Restart Form', next: 'appointment_start' }
     ]
   },
   appointment_success: {
     q: 'Appointment booked successfully! You will receive a confirmation shortly.',
-    options: [] // Dead end -> automatically restarts
+    options: [] // Dead end -> auto-prompt restart
   }
 };
 
 const botData = {
   startNode: 'start',
   nodes: {
-    // We plug the two scripts together here!
-    ...bankingScript,
+    start: {
+      q: 'Hi! Welcome to Apex Bank. How can we help you today?',
+      options: [
+        { label: '💳 Account Services', next: 'accounts_menu' },
+        { label: '🛠️ Technical Support', next: 'support_menu' },
+        { label: '📅 Schedule Appointment', next: 'appointment_start' }
+      ]
+    },
+    ...accountServices,
+    ...technicalSupport,
     ...appointmentFormScript
   }
 };

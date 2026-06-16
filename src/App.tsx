@@ -20,7 +20,7 @@ export const App = () => {
   });
 
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') || 'light';
+    return localStorage.getItem('theme') || 'dark';
   });
 
   const [formState, setFormState] = useState<Record<string, string>>({});

@@ -32,7 +32,7 @@ export default function TreeVisualizer({ data, currentNodeId, pathStack, formSta
     incomingLabels?: Map<string, string>;          // nodeId → user-facing option label
   }>({});
 
-  const [showUser, setShowUser] = useState(false);
+  const [showUser, setShowUser] = useState(true);
 
   // Mount Three.js scene once
   useEffect(() => {
@@ -365,7 +365,7 @@ export default function TreeVisualizer({ data, currentNodeId, pathStack, formSta
     const centerX = (maxLevel * 4.0) / 2; // positive because tree grows right
     if (s.camera && s.controls) {
       s.controls.target.set(centerX, 0, 0);
-      s.camera.position.set(centerX, 2, 16);
+      s.camera.position.set(centerX, 2, 19.2);
     }
   }, [data]);
 

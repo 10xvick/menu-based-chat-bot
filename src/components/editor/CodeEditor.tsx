@@ -32,11 +32,70 @@ export default function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
     }
   };
 
+  const handleExport = () => {
+    const blob = new Blob([localCode], { type: 'text/javascript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'bot-script.js';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      if (content) {
+        setLocalCode(content);
+        try {
+          // eslint-disable-next-line no-new-func
+          const fn = new Function(content);
+          fn();
+          setError(null);
+          onCodeChange(content);
+        } catch (err: any) {
+          setError(`Import validation error: ${err.message}`);
+          onCodeChange(content);
+        }
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   return (
     <div className="json-editor-container" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div className="editor-header">
         <h2>JavaScript Action Editor</h2>
-        <button className="apply-btn" onClick={handleApply}>Save & Apply</button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button 
+            className="theme-toggle" 
+            style={{ padding: '0.35rem 0.6rem', fontSize: '0.725rem' }} 
+            onClick={handleExport}
+            title="Export bot script as JS file"
+          >
+            📥 Export
+          </button>
+          <label 
+            className="theme-toggle" 
+            style={{ padding: '0.35rem 0.6rem', fontSize: '0.725rem', margin: 0, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+            title="Import bot script from JS or JSON file"
+          >
+            📤 Import
+            <input 
+              type="file" 
+              accept=".js,.json" 
+              style={{ display: 'none' }} 
+              onChange={handleImport} 
+            />
+          </label>
+          <button className="apply-btn" onClick={handleApply}>Save & Apply</button>
+        </div>
       </div>
       {error && <div className="editor-error">{error}</div>}
       <div style={{ flex: 1, minHeight: 0 }}>
